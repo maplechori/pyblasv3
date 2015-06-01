@@ -1,5 +1,5 @@
-Simple recursive descent parser for Blaise like languages.
+Simple recursive descent parser for Blaise like languages.<br><br>
 
-Multimode Interviewing Capability (MMIC) - RAND Corporation
-Nubis - USC CESR
-Blaise - Statistics Netherlands
+Multimode Interviewing Capability (MMIC) - RAND Corporation<br>
+Nubis - USC CESR<br>
+Blaise - Statistics Netherlands<br>
