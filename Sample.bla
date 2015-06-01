@@ -1,0 +1,129 @@
+
+DATAMODEL Sample
+
+   ATTRIBUTES = DK, RF
+
+   PRIMARY
+      Serial
+
+   LOCALS {DM}
+      idx, tax, tex : INTEGER[2]
+
+   BLOCK BPerson
+
+      SETTINGS
+         ATTRIBUTES = EMPTY, DK, RF
+
+      FIELDS {BPerson}
+
+         Person
+         "Person number"
+         : 1..12
+
+         IndSer 
+         "Individual serial number"
+         : 1..99999999999, NODK, NORF
+
+         Name
+         "Name"
+         : STRING[15]
+
+         Sex
+         "Sex"
+         : (Male, Female)
+
+         AgeOf
+         "Age"
+         : 0..120
+
+         DoB
+         "Date of birth"
+         : DATETYPE
+
+         Saliva         
+         "Saliva sample?"
+         : (Yes,No)
+
+   ENDBLOCK {BPerson}
+
+   BLOCK BSample
+
+      SETTINGS
+         ATTRIBUTES = EMPTY, DK, RF
+
+      FIELDS {BSample}
+
+         DateOI
+         "Date of main interview"
+         : DATETYPE
+
+         IssNum
+         "Issue number"
+         : 0..7
+
+         IntNum
+         "Interviewer number"
+         : STRING[4], NODK, NORF
+
+         NursNo
+         "Allocated to nurse number"
+         : STRING[4], NODK, NORF
+
+         PointNum
+         "Point number"
+         : STRING[4]
+
+         AdrField
+         "Address lines"
+         : ARRAY [1..5] OF STRING[40]
+
+         PostCode
+         "Postcode"
+         : STRING[8]
+
+         Slot
+         "Slot name on laptop"
+         : STRING[8]
+
+         Scomp
+         "Self completion?"
+         : (Yes,No)
+
+         Done
+         "Is this record already sent out?"
+         : (Yes,No)
+
+   ENDBLOCK {BSample}
+
+   FIELDS {DM}
+
+      Serial
+      "Serial number"
+      : 1..999999999, NODK, NORF
+
+      QSample
+      "Sample information"
+      : BSample
+
+      P
+      "Person level records"
+      : ARRAY [1..12] OF BPerson
+
+   RULES {DM}
+      Serial.KEEP
+      Quick
+      BrownFox
+      QSample := 6 / 3 + 3
+      
+      IF NOT ( 18 > 1 AND 3 < 1 ) THEN
+	IF QSample > 0 THEN
+		QSample
+	ELSEIF QSample < 2 THEN
+		BrownFox	
+	ENDIF
+      ENDIF
+      FOR idx := 1 TO 12 DO
+          P[idx]
+      ENDDO
+
+ENDMODEL
