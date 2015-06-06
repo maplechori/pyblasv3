@@ -56,6 +56,7 @@ class Parser(object):
         print "Current Token", self.getCurr()
         print "Previous Token: ", self.getPrev()
         print "Next Token: ", self.LookAhead()
+        exit(1)
         return False
 
     def getPrev(self):

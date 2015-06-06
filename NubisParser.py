@@ -26,10 +26,12 @@ __author__ = 'adrianmo'
 
 from SymbolEnv import *
 from NubisLexer import *
+from BlaiseObjects import ForStatement
 from Parser import *
 
 
 SymbolTable = []
+Tree = []
 
 class Node(object):
     def __init__(self, value):
@@ -166,14 +168,22 @@ class NubisParser(Parser):
         se = SymbolEnv()
         se.addSymbol(self.getCurr(), "PROGRAM")
         SymbolTable.insert(0,se)
-        return self.statement()
+        return self.statement_list()
+
 
 
     def factor(self):
         value = 0
         if self.accept("ID"):
-
             value = Identifier(self.getPrev())
+            if(self.accept("[")):
+
+                sexp = self.expression()
+                arr = ArrayAccess("ArrayAccess",  value, sexp)
+                self.expect("]")
+                return arr
+
+
         elif self.accept("COUNT"):
             value = NumberOpNode(self.getPrev(), int)
         elif self.accept("LPAREN"):
@@ -244,41 +254,50 @@ class NubisParser(Parser):
     def condition(self):
         right = None
         if self.accept("NOT"):
-
             if self.accept("("):
                 left = NotExpression(self.and_or_expression())
                 self.accept(")")
             else:
                 left = NotExpression(self.and_or_expression())
-
         else:
             left = ExpressionNode(self.and_or_expression())
 
-
         if self.accept("THEN"):
-            value = self.statement()
 
-            if self.accept("ELSEIF"):
-                right = self.condition()
-            elif self.accept("ELSE"):
+            statements = []
+            while self.getCurr() != "ENDIF":
+                statements.append(self.statement())
 
-                if self.accept("ENDIF"):
-                    right = None
+
+                if self.accept("ELSEIF"):
+                    right = self.condition()
+                elif self.accept("ELSE"):
+
+                    if self.accept("ENDIF"):
+                        right = None
+                    else:
+                        right = self.statement()
                 else:
-                    right = self.statement()
-
-            else:
-                pass
+                    pass
 
 
-            self.accept("ENDIF")
 
-            print  IfCondition("IF", left, value, right)
-            return IfCondition("IF", left, value, right)
+
+
+            print  IfCondition("IF", left, statements, right)
+            return IfCondition("IF", left, statements, right)
 
         else:
             print "condition: invalid operator", self.current_token[0], self.current_token[1], self.getPrev(), self.getCurr()
             self.getSym()
+
+    def statement_list(self):
+        stmtList = []
+        stmtList.append(self.statement())
+        while(self.current_token[0] != "END"):
+            stmtList.append(self.statement())
+        return stmtList
+
 
     def statement(self):
 
@@ -287,15 +306,13 @@ class NubisParser(Parser):
         if self.accept("ID"):
             identifier = Identifier(self.getPrev())
             print identifier
-            if (self.accept(".")): # method
-
-                if (self.accept("KEEP")):
-
-                    return BinOp("MethodCall", identifier, MethodCall("KEEP"))
-
+            if (self.accept(".FILL")):
+                return BinOp("MethodCall", identifier, MethodCall("FILL"))
+            elif (self.accept(".KEEP")):
+                return BinOp("MethodCall", identifier, MethodCall("KEEP"))
             elif(self.accept("[")):
                     sexp = self.expression()
-                    arr = ArrayAccess("ArrayAccesss", identifier, sexp)
+                    arr = ArrayAccess("ArrayAccess", identifier, sexp)
                     self.expect("]")
                     return arr
             elif self.accept(":="):
@@ -304,7 +321,11 @@ class NubisParser(Parser):
                 return AskQuestion(identifier)
 
         elif self.accept("IF"):
-            return self.condition()
+            print "IF"
+            condition =  self.condition()
+            print condition
+            self.expect("ENDIF")
+            return condition
 
 
         elif self.accept("FOR"):#self.current_token[1] == "FOR":
@@ -324,17 +345,20 @@ class NubisParser(Parser):
             if self.accept("COUNT"):
                 _final = self.getPrev()
             elif self.accept("("):
-                return self.expression()
+                self.expression()
                 self.accept(")")
 
 
             self.accept("DO")
+            print "DO"
             stmt = self.statement()
+            print "ENDDO"
             self.accept("ENDDO")
 
 
 
             forstmt =  ForStatement(_control, _initial, _direction, _final, stmt)
+            print forstmt
             return forstmt
 
 

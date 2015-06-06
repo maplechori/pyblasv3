@@ -9,7 +9,7 @@ FOR HCcnt := 1 TO 10 DO
    IF HC006 = 1 THEN
      IF HCcnt != 8 THEN  // dont ask for food eat...
        HC004[HCcnt]
-       IF HC004[HCcnt] = 1 THEN
+       IF HC004[HCcnt]  = 1 THEN
          HC005[HCcnt]
        ENDIF
      ENDIF

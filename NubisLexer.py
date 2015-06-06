@@ -37,6 +37,8 @@ FIELDS = "FIELDS"
 RULES = "RULES"
 COLON = "COLON"
 SEMICOLON = "SEMICOLON"
+LBRACKET = "["
+RBRACKET = "]"
 
 tokens_ex = [
     (r'//.*(?=[\n|\r])?', None),  # COMMENTS
@@ -68,8 +70,8 @@ tokens_ex = [
     (r'!=', RESERVED),
     (r'ENDIF', RESERVED),
     (r'AND', RESERVED),
-    ( r'\[', RESERVED),
-    ( r'\]', RESERVED),
+    ( r'\[', LBRACKET),
+    ( r'\]', RBRACKET),
     ( r'\(', RESERVED),
     ( r'\)', RESERVED),
     ( r'\.', r'DECIMAL'),

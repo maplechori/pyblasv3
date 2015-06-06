@@ -55,4 +55,6 @@ def lex(chars, token_express, flags = re.UNICODE | re.IGNORECASE |  re.MULTILINE
             sys.exit(1)
         else:
             position = match.end(0)
+
+
     return tokens

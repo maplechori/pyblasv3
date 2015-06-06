@@ -59,8 +59,8 @@ bpx.open("nubis.bla")
 print type(bpx.getCode())
 
 tokensNubis = NubisLexer( bpx.getCode())
-
+tokensNubis.append((u"END", "RESERVED"))
 pprint.pprint(tokensNubis)
 x = NubisParser(tokensNubis)
 
-x.program()
+actual = x.program()
