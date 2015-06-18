@@ -7,7 +7,7 @@ Blaise - Statistics Netherlands<br>
 
 Example Nubis.bla<br>
 
-<code>
+<pre>
 
 // FOR FAM R
 FLHC002.FILL
@@ -40,11 +40,11 @@ ENDIF
 HDD := 3 + 2 * 1 + 2
 
 
-</code>
+</pre>
 
 Parse tree output:
 
-<code>
+<pre>
 (MethodCall FLHC002 FILL)
  (ArrayAccess HC001 HCcnt)
  ASK Identifier: HC006 
@@ -70,4 +70,4 @@ Parse tree output:
 												ASK Identifier: HC005 
  (:= HDD (+ (+ 3 (* 2 1)) 2))
 
-</code>
+</pre>
