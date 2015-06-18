@@ -52,15 +52,19 @@ class MethodCall(Node):
 
 
 class AskQuestion(Node):
-    pass
+
+     def __init__(self, value):
+         self.value = value
+         self.type = "AskQuestion"
+
+     def __repr__(self):
+         return ('ASK {0}').format( self.value)
 
 
 class TreeNode(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
-
-    def __repr__(self):
         return ('{0}: {1} {2} {3} ').format( self.__class__.__name__ , self.left,self.op, self.right)
 
 
@@ -99,6 +103,7 @@ class RangeType(Node):
 class ExpressionNode(Node):
     def __init__(self, value):
         self.value = value
+        self.type = "EXPRESSION"
 
 class NotExpression(Node):
     pass
@@ -108,6 +113,7 @@ class BinOp(TreeNode):
     def __init__(self, op, left, right):
         self.left = left
         self.right =right
+        self.type = "BINOP"
         self.op = op
 
     def __str__(self, level=0):
@@ -144,15 +150,16 @@ class IfCondition(BinOp):
     def __init__(self, op, left, value, right):
         self.value = value
         self.left = left
+        self.type = "IF"
         self.right =right
         self.op = op
 
     def __str__(self, level=0):
-        return ('Condition: {0} {1} {2} ').format( self.left,self.op, self.value)
+        return ('IFCondition: {0} {1} {2} ELSE {3}').format( self.left,self.op, self.value, self.right)
 
 
     def __repr__(self):
-        return ('Condition: {0} {1} {2} ').format( self.left,self.op, self.value)
+        return ('IFCondition: {0} {1} {2} ELSE {3} ').format( self.left,self.op, self.value, self.right)
 
 
 
@@ -266,11 +273,16 @@ class NubisParser(Parser):
 
             statements = []
             while self.getCurr() != "ENDIF":
-                statements.append(self.statement())
+                stmt = self.statement()
 
+                if (stmt):
+                    statements.append(stmt)
 
                 if self.accept("ELSEIF"):
+                    print "ELSEIF"
                     right = self.condition()
+                    print "LEFT ", right
+
                 elif self.accept("ELSE"):
 
                     if self.accept("ENDIF"):
@@ -314,9 +326,15 @@ class NubisParser(Parser):
                     sexp = self.expression()
                     arr = ArrayAccess("ArrayAccess", identifier, sexp)
                     self.expect("]")
-                    return arr
+                    if self.accept(":="):
+                        assign = AssignmentNode(":=", arr, self.expression())
+                        return assign
+                    else:
+                        return arr
             elif self.accept(":="):
-                return AssignmentNode(":=", identifier, self.expression())
+                assign = AssignmentNode(":=", identifier, self.expression())
+                print assign
+                return assign
             else:
                 return AskQuestion(identifier)
 

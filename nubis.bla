@@ -1,14 +1,14 @@
 // FOR FAM R
 FLHC002.FILL
-HC001
+HC001[HCcnt] 
 HC006
 HC002
 FOR HCcnt := 1 TO 10 DO
  IF HCcnt IN HC002 THEN
-   HC003[HCcnt]
+   HC003[HCcnt] 
    IF HC006 = 1 THEN
      IF HCcnt != 8 THEN  // dont ask for food eat...
-       HC004[HCcnt]
+       HC004[HCcnt] := 2
        IF HC004[HCcnt]  = 1 THEN
          HC005[HCcnt]
        ENDIF
@@ -16,3 +16,14 @@ FOR HCcnt := 1 TO 10 DO
    ENDIF
  ENDIF
 ENDDO
+HC003
+IF HC003 = 1 THEN
+    HC004
+ELSEIF HC004 = 2 THEN
+    HC003
+ELSEIF HC005 = 3 THEN
+    HC006
+ELSE
+    HC005
+ENDIF
+HDD := 3 + 2 * 1 + 2

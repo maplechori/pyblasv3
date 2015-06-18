@@ -56,7 +56,7 @@ from NubisProgram import *
 bpx = NubisProgram()
 bpx.open("nubis.bla")
 
-print type(bpx.getCode())
+#print type(bpx.getCode())
 
 tokensNubis = NubisLexer( bpx.getCode())
 tokensNubis.append((u"END", "RESERVED"))
@@ -64,3 +64,72 @@ pprint.pprint(tokensNubis)
 x = NubisParser(tokensNubis)
 
 actual = x.program()
+
+print "******************"
+
+
+def interpret(stmt, level):
+
+    if stmt == None:
+        return
+
+    if isinstance(stmt, list):
+        #print "R1"
+        for i in stmt:
+
+            if i.type == "BINOP":
+                print level*"\t",i
+            elif i.type == "AskQuestion":
+                print level*"\t",i
+            elif i.type == "FOR":
+                 print level*"\t","FOR", i.control , " := ", i.initial, i.direction, i.final, " DO"
+                 interpret(i.value, level + 1)
+            elif i.type == "ELSE":
+                print "ELSE"
+                print level*"\t", i.type
+
+                interpret(i.value, level + 1)
+            elif i.type == "IF":
+                print (level)*"\t", "IF", i.left, "THEN"
+
+
+                interpret(i.value, level + 1)
+                if i.right:
+                    print level*"\t", "ELSE"
+                    interpret(i.right, level + 1)
+                    #print level*"\t"
+                    #print "ELSE\n\r",(level)*"\t"
+                    #print i.right, "\n"
+            elif stmt.type == "EXPRESSION":
+                print "exp"
+                interpret(stmt.value, level + 1)
+    else:
+        #print "R2", stmt
+
+        if stmt.type == "BINOP":
+                print stmt
+        elif stmt.type == "AskQuestion":
+                print level*"\t", stmt
+        elif stmt.type == "FOR":
+                print level*"\t","FOR", stmt.initial, stmt.direction, stmt.final
+
+                interpret(stmt.value, level + 1)
+        elif stmt.type == "ELSE":
+                print "ELSE"
+                print level*"\t", stmt.type
+
+        elif stmt.type == "IF":
+                print level*"\t","IF", stmt.left, "THEN"
+                interpret(stmt.value, level + 1)
+
+                if stmt.right:
+                    print level*"\t", "ELSE"
+                    interpret(stmt.right, level + 1)
+                    #print (level)*"\t\n"
+                    #print "ELSE\n\r"
+                    #print (level)*"\t", stmt.right, "\n"
+        elif stmt.type == "EXPRESSION":
+                print "exp"
+                interpret(stmt.value, level + 1)
+
+interpret(actual,0)

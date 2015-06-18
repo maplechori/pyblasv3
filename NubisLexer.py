@@ -39,6 +39,8 @@ COLON = "COLON"
 SEMICOLON = "SEMICOLON"
 LBRACKET = "["
 RBRACKET = "]"
+ELSE = "ELSE"
+ELSEIF = "ELSEIF"
 
 tokens_ex = [
     (r'//.*(?=[\n|\r])?', None),  # COMMENTS
@@ -80,8 +82,9 @@ tokens_ex = [
     (r'OR\s', RESERVED),
     (r'NOT\s', RESERVED),
     (r'IF\s', IF),
-    (r'ELSE\s', RESERVED),
-    (r'ELSEIF\s', RESERVED),
+    (r'ELSEIF\s', ELSEIF),
+    (r'ELSE[\s\n]?', ELSE),
+
     (r'DO(?=\s)', RESERVED),
     (r'GROUP\.', RESERVED),
     (r'ENDGROUP', RESERVED),

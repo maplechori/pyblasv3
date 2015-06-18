@@ -61,7 +61,6 @@ class Block(object):
 class ForStatement(object):
 
     def __init__(self, control, initial, direction, final, statements):
-        global levelScope
         self.type = "FOR"
         self.control = control
         self.initial = initial
