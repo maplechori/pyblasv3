@@ -76,42 +76,18 @@ def interpret(stmt, level):
     if isinstance(stmt, list):
         #print "R1"
         for i in stmt:
+            interpret(i, level)
 
-            if i.type == "BINOP":
-                print level*"\t",i
-            elif i.type == "AskQuestion":
-                print level*"\t",i
-            elif i.type == "FOR":
-                 print level*"\t","FOR", i.control , " := ", i.initial, i.direction, i.final, " DO"
-                 interpret(i.value, level + 1)
-            elif i.type == "ELSE":
-                print "ELSE"
-                print level*"\t", i.type
-
-                interpret(i.value, level + 1)
-            elif i.type == "IF":
-                print (level)*"\t", "IF", i.left, "THEN"
-
-
-                interpret(i.value, level + 1)
-                if i.right:
-                    print level*"\t", "ELSE"
-                    interpret(i.right, level + 1)
-                    #print level*"\t"
-                    #print "ELSE\n\r",(level)*"\t"
-                    #print i.right, "\n"
-            elif stmt.type == "EXPRESSION":
-                print "exp"
-                interpret(stmt.value, level + 1)
     else:
         #print "R2", stmt
 
         if stmt.type == "BINOP":
-                print stmt
+                print level*"\t",stmt
         elif stmt.type == "AskQuestion":
                 print level*"\t", stmt
         elif stmt.type == "FOR":
-                print level*"\t","FOR", stmt.initial, stmt.direction, stmt.final
+                print level*"\t","FOR", stmt.control , " := ", stmt.initial, stmt.direction, stmt.final, " DO"
+                #print level*"\t","FOR", stmt.initial, stmt.direction, stmt.final
 
                 interpret(stmt.value, level + 1)
         elif stmt.type == "ELSE":
@@ -131,5 +107,102 @@ def interpret(stmt, level):
         elif stmt.type == "EXPRESSION":
                 print "exp"
                 interpret(stmt.value, level + 1)
+        elif stmt.type == "ASSIGN":
+                print stmt.left
+                print stmt.left, ":=", stmt.right
+
+        else:
+
+            return
 
 interpret(actual,0)
+
+print "*********** EVALUATE ***********"
+
+
+def apply_op(op, left, right):
+    if (op == "+"):
+        return left + right
+    elif (op == "-"):
+        #print left, "-", right
+        return left - right
+    elif (op == "*"):
+        #print left, "*", right
+        return left * right
+    elif (op == "/"):
+        #print left, "/", right
+        return left / right
+    elif (op == "CALL"):
+        print "executing CALL ",right, " ON ", left
+        return
+    else:
+        pass
+
+
+
+def evaluate(stmt, env):
+
+    if stmt == None:
+        return
+
+    if isinstance(stmt, list):
+        #print "R1"
+        for i in stmt:
+            evaluate(i, env)
+    else:
+        #print "R2", stmt
+
+        if stmt.type == "BINOP":
+                #print "BINOP"
+                print stmt
+                return apply_op(stmt.op, evaluate(stmt.left, env), evaluate(stmt.right, env))
+                #print stmt
+
+        elif stmt.type == "INTEGER":
+            print stmt.value
+            return stmt.value
+
+        elif stmt.type == "METHODCALL":
+            return stmt.value
+
+
+        elif stmt.type == "IDENTIFIER":
+                return env.getSymbol(stmt.value)
+
+        elif stmt.type == "FOR":
+                #print level*"\t","FOR", stmt.initial, stmt.direction, stmt.final
+
+
+                #interpret(stmt.value, level + 1)
+                pass
+        elif stmt.type == "ELSE":
+                print "ELSE"
+                #print level*"\t", stmt.type
+                pass
+
+        elif stmt.type == "IF":
+                #print level*"\t","IF", stmt.left, "THEN"
+                print "evaluate: " , evaluate(stmt.left, env)
+                #interpret(stmt.value, level + 1)
+                pass
+
+                #if stmt.right:
+                #    print level*"\t", "ELSE"
+                #    interpret(stmt.right, level + 1)
+                    #print (level)*"\t\n"
+                    #print "ELSE\n\r"
+                    #print (level)*"\t", stmt.right, "\n"
+        elif stmt.type == "EXPRESSION":
+                return evaluate(stmt.value, env)
+
+        elif stmt.type == "ASSIGN":
+            return env.defSymbol(stmt.left.value, evaluate(stmt.right, env))
+
+
+
+
+envGlobal = SymbolEnv()
+
+evaluate(actual, envGlobal)
+
+print envGlobal

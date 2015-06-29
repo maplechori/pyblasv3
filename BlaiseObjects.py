@@ -84,3 +84,108 @@ class Field(object):
             self.attributes = []
         def __repr__(self):
             return ('FIELD: {0} {1}').format(self.name, self.languages )
+
+
+
+class Node(object):
+    def __init__(self, value = None):
+         self.value = value
+         self.type = None
+         self.attributes = []
+    def __repr__(self):
+        return ('{0}: {1} ').format( self.__class__.__name__ , self.value)
+
+
+class Identifier(Node):
+    def __init__(self, value = None):
+         self.value = value
+         self.type = "IDENTIFIER"
+         self.attributes = []
+    def __repr__(self):
+        return ('{0}: {1} ').format( self.__class__.__name__ , self.value)
+
+
+class MethodCall(Node):
+    def __init__(self, value = None):
+         self.value = value
+         self.type = "METHODCALL"
+         self.attributes = []
+
+    def __repr__(self):
+        return ('{0}: {1} ').format( self.__class__.__name__ , self.value)
+
+class ExpressionNode(Node):
+    def __init__(self, value):
+        self.value = value
+        self.type = "EXPRESSION"
+
+class NotExpression(Node):
+    def __init__(self, value):
+        self.value = value
+        self.type = "NOT"
+
+class BinOp(Node):
+
+    def __init__(self, op, left, right):
+        self.left = left
+        self.right =right
+        self.type = "BINOP"
+        self.op = op
+
+    def __str__(self, level=0):
+
+        retr = ""
+        retl = ""
+
+        if (isinstance(self.left, BinOp)):
+            retl +=  str(self.left.__str__(level+1)) + ""
+        else:
+            retl +=  str(self.left.value) + ""
+
+        if (isinstance(self.right, BinOp)):
+            retr += str(self.right.__str__(level+1)) + ""
+        else:
+            retr += str(self.right.value) + ""
+
+        return  "(" + self.op +  " " + retl + " " + retr + ")"
+
+
+    def __repr__(self):
+        return ('BinOp: {0} {1} {2} ').format( self.left,self.op, self.right)
+
+class AssignmentNode(BinOp):
+
+    def __init__(self, op, left, right):
+        self.left =  left
+        self.right = right
+        self.type = "ASSIGN"
+        self.op = op
+
+    def __repr__(self):
+        return ('Assignment: {0} {1} {2} ').format( self.left,self.op, self.right)
+
+
+
+class IfCondition(BinOp):
+
+    def __init__(self, op, left, value, right):
+        self.value = value
+        self.left = left
+        self.type = "IF"
+        self.right =right
+        self.op = op
+
+    def __str__(self, level=0):
+        return ('IFCondition: {0} {1} {2} ELSE {3}').format( self.left,self.op, self.value, self.right)
+
+
+    def __repr__(self):
+        return ('IFCondition: {0} {1} {2} ELSE {3} ').format( self.left,self.op, self.value, self.right)
+
+class NumberOpNode(Node):
+
+    def __init__(self, value, typeOf):
+        self.type = typeOf
+        self.value = value
+    def __repr__(self):
+        return ('N:{0}').format(self.value)

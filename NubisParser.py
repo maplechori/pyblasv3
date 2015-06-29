@@ -26,28 +26,11 @@ __author__ = 'adrianmo'
 
 from SymbolEnv import *
 from NubisLexer import *
-from BlaiseObjects import ForStatement
+from BlaiseObjects import *
 from Parser import *
 
 
 SymbolTable = []
-Tree = []
-
-class Node(object):
-    def __init__(self, value):
-         self.value = value
-         self.type = None
-         self.attributes = []
-    def __repr__(self):
-        return ('{0}: {1} ').format( self.__class__.__name__ , self.value)
-
-
-class Identifier(Node):
-    pass
-
-
-class MethodCall(Node):
-    pass
 
 
 
@@ -61,20 +44,6 @@ class AskQuestion(Node):
          return ('ASK {0}').format( self.value)
 
 
-class TreeNode(Node):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        return ('{0}: {1} {2} {3} ').format( self.__class__.__name__ , self.left,self.op, self.right)
-
-
-class NumberOpNode(Node):
-
-    def __init__(self, value, typeOf):
-        self.typeOf = typeOf
-        self.value = value
-    def __repr__(self):
-        return ('N:{0}').format(self.value)
 
 
 class DateType(Node):
@@ -100,66 +69,10 @@ class RangeType(Node):
 
 
 
-class ExpressionNode(Node):
-    def __init__(self, value):
-        self.value = value
-        self.type = "EXPRESSION"
-
-class NotExpression(Node):
-    pass
-
-class BinOp(TreeNode):
-
-    def __init__(self, op, left, right):
-        self.left = left
-        self.right =right
-        self.type = "BINOP"
-        self.op = op
-
-    def __str__(self, level=0):
-
-        retr = ""
-        retl = ""
-
-        if (isinstance(self.left, TreeNode)):
-            retl +=  self.left.__str__(level+1) + ""
-        else:
-            retl +=  self.left.value + ""
-
-        if (isinstance(self.right, TreeNode)):
-            retr += self.right.__str__(level+1) + ""
-        else:
-            retr += self.right.value + ""
-
-        return  "(" + self.op +  " " + retl + " " + retr + ")"
-
-
-    def __repr__(self):
-        return ('BinOp: {0} {1} {2} ').format( self.left,self.op, self.right)
-
-class AssignmentNode(BinOp):
-    def __repr__(self):
-        return ('Assignment: {0} {1} {2} ').format( self.left,self.op, self.right)
-
 
 class ArrayAccess(BinOp):
     pass
 
-class IfCondition(BinOp):
-
-    def __init__(self, op, left, value, right):
-        self.value = value
-        self.left = left
-        self.type = "IF"
-        self.right =right
-        self.op = op
-
-    def __str__(self, level=0):
-        return ('IFCondition: {0} {1} {2} ELSE {3}').format( self.left,self.op, self.value, self.right)
-
-
-    def __repr__(self):
-        return ('IFCondition: {0} {1} {2} ELSE {3} ').format( self.left,self.op, self.value, self.right)
 
 
 
@@ -173,8 +86,8 @@ class NubisParser(Parser):
     def program(self):
         self.getSym()
         se = SymbolEnv()
-        se.addSymbol(self.getCurr(), "PROGRAM")
-        SymbolTable.insert(0,se)
+        #se.setSymbol(self.getCurr(), "PROGRAM")
+        #SymbolTable.insert(0,se)
         return self.statement_list()
 
 
@@ -192,7 +105,8 @@ class NubisParser(Parser):
 
 
         elif self.accept("COUNT"):
-            value = NumberOpNode(self.getPrev(), int)
+            value = NumberOpNode(int(self.getPrev()), "INTEGER")
+
         elif self.accept("LPAREN"):
             value = ExpressionNode(self.expression())
             self.expect("RPAREN")
@@ -223,6 +137,7 @@ class NubisParser(Parser):
             trm = self.term()
             if symbolChange == "-":
                 trm.value =  symbolChange + trm.value
+                print "SYMBOL CHANGE **"
             return trm
         else:
             return self.term()
@@ -319,9 +234,9 @@ class NubisParser(Parser):
             identifier = Identifier(self.getPrev())
             print identifier
             if (self.accept(".FILL")):
-                return BinOp("MethodCall", identifier, MethodCall("FILL"))
+                return BinOp("CALL", identifier, MethodCall("FILL"))
             elif (self.accept(".KEEP")):
-                return BinOp("MethodCall", identifier, MethodCall("KEEP"))
+                return BinOp("CALL", identifier, MethodCall("KEEP"))
             elif(self.accept("[")):
                     sexp = self.expression()
                     arr = ArrayAccess("ArrayAccess", identifier, sexp)
@@ -336,7 +251,7 @@ class NubisParser(Parser):
                 print assign
                 return assign
             else:
-                return AskQuestion(identifier)
+                return identifier
 
         elif self.accept("IF"):
             print "IF"
@@ -351,7 +266,7 @@ class NubisParser(Parser):
             _control = Identifier(self.getPrev())
             self.accept("ASSIGN")
             self.accept("COUNT")
-            _initial = self.getPrev()
+            _initial = NumberOpNode(self.getPrev(), "INTEGER")
 
             if self.accept("TO"):
                 _direction = self.getPrev()
@@ -361,7 +276,7 @@ class NubisParser(Parser):
                 print "Unexpected token in FOR STATEMENT"
 
             if self.accept("COUNT"):
-                _final = self.getPrev()
+                _final = NumberOpNode(self.getPrev(), "INTEGER")
             elif self.accept("("):
                 self.expression()
                 self.accept(")")
@@ -392,7 +307,7 @@ class NubisParser(Parser):
 
                 if (self.accept("(")):
                     self.expect("COUNT")
-                    print self.getPrev()
+                    print NumberOpNode(self.getPrev(), "INTEGER")
                     # put this value instead of v
                     self.accept(")")
 
@@ -417,10 +332,11 @@ class NubisParser(Parser):
         print "ARRAY TYPE"
         self.expect("[")
         self.expect("COUNT")
-        lower = self.getPrev()
+        lower = NumberOpNode(self.getPrev(), "INTEGER")
+
         self.expect("DOTDOT")
         self.expect("COUNT")
-        higher = self.getPrev()
+        higher = NumberOpNode(self.getPrev(), "INTEGER")
         self.expect("]")
         self.expect("OF")
         aType = ArrayType(self.type_denoter(), lower, higher)
@@ -440,7 +356,7 @@ class NubisParser(Parser):
             if (self.accept("[")):
                 self.expect("COUNT")
                 #print "INTEGER[" + self.getPrev() + "]"
-                count = self.getPrev()
+                count = NumberOpNode(self.getPrev(), "INTEGER")
                 self.accept("]")
                 return ArrayType(int, 0, count)
 
@@ -449,11 +365,12 @@ class NubisParser(Parser):
 
         elif (self.accept("COUNT")):
 
-            low =  self.getPrev()
+            low =  NumberOpNode(self.getPrev(), "INTEGER")
+
 
             if (self.accept("DOTDOT")):
                 self.accept("COUNT")
-                high = self.getPrev()
+                high = NumberOpNode(self.getPrev(), "INTEGER")
 
                 return RangeType(low, high)
             else:
@@ -471,7 +388,7 @@ class NubisParser(Parser):
 
             if (self.accept("[")):
                 self.expect("COUNT")
-                cntType = self.getPrev()
+                cntType = NumberOpNode(self.getPrev(), "INTEGER")
                 print "STRING[" + self.getPrev() + "]"
                 self.accept("]")
                 return ArrayType(str, 0, cntType)

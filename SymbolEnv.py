@@ -26,17 +26,48 @@ THE SOFTWARE.
 
 class SymbolEnv:
 
-    def __init__(self):
+
+    def __init__(self, parent = None):
+
+        self.parent = parent
+
         self._envContext = {}
 
-    def addSymbol(self, name, value, size = 1, offset = 0):
-        if self._envContext.has_key(name):
+    def lookupSymbol(self, name):
+        scope = self
+
+        while(scope):
+            if scope.getSymbol(name):
+                return self
+            else:
+                return self.parent
+
+    def defSymbol(self, name, value):
+        print "[", name, "] := ", value
+        self._envContext[name]  = value
+
+    def setSymbol(self, name, value):
+        scope = self.lookupSymbol(name)
+
+        if not scope and self.parent:
             print "Error: Key %s on context already exists" % ( name )
         else:
-            self._envContext[name] = value
+            print "[", name, "] = ", value
+            if (scope):
+                scope.defSymbol(name, value)
+            else:
+                self.defSymbol(name, value)
 
-    def getSymbol(self, name, offset):
-        return self._envContext['name']
+    def getSymbol(self, name):
+        if self._envContext.has_key(name):
+            print "[", name, "]"
+            return self._envContext[name]
+        else:
+            print "Error: Undefined variable ", name
+
+
+
+
 
     def __repr__(self):
         return u"%s" % ( self._envContext)

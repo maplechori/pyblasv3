@@ -52,6 +52,7 @@ tokens_ex = [
     (r'MOVEFORWARD', RESERVED),
     (r'\.INLINE', RESERVED),
     (r'\.FILL', RESERVED),
+    (r'\.RESPONSE', RESERVED),
     (r';', RESERVED),
     (r'\+', RESERVED),
     (r'-', RESERVED),
