@@ -31,7 +31,7 @@ import re
 
 
 
-def lex(chars, token_express, flags = re.UNICODE | re.IGNORECASE |  re.MULTILINE | re.DOTALL):
+def lex(chars, token_express, flags = re.UNICODE | re.IGNORECASE |  re.MULTILINE | re.DOTALL, debug = 0):
     position = 0
     lines = 0
     tokens = []
@@ -43,15 +43,20 @@ def lex(chars, token_express, flags = re.UNICODE | re.IGNORECASE |  re.MULTILINE
 
             match = regex.match(chars, position)
             if match:
+
                 lines += 1
                 text = match.group(0)
+                if debug and tag:
+                    print "[" , lines , "] (", text, tag, ")"
+                if tag != "LITERAL":
+                    text = str.upper(text)
                 if tag:
                     token = (text, tag)
                     tokens.append(token)
                 break
         if not match:
             print chars[position-20:position], "|", chars[position], "|" , chars[position:position+20]
-            sys.stderr.write('Unexpected character: %s %s Position: %d\n' % (chars[position], tag, position ))
+            sys.stderr.write('Unexpected character: Line %s %s %s Position: %d\n' % (lines, chars[position], tag, position ))
             sys.exit(1)
         else:
             position = match.end(0)

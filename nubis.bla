@@ -33,3 +33,6 @@ ENDIF
 HDD := 3 + 2 - 1 + 2
 
 HDX := HDD * 3
+
+HDE := STR(HDX)
+

@@ -34,7 +34,9 @@ from BlaiseParser import *
 from BlaiseProgram import *
 from NubisParser import *
 from NubisProgram import *
-
+from MMICProgram import *
+from MMICLexer import *
+from MMICParser import *
 
 
 #bp = BlaiseProgram()
@@ -52,18 +54,29 @@ from NubisProgram import *
 #if prg.rules:
 #    print prg.rules[0]
 
+mm = MMICProgram()
+code = mm.getField("coverscreen_rule", "description", 1)
+print code
+print "***** Lexing"
+tokensMMIC = MMICLexer( code, debug = 1 )
+tokensMMIC.append((u"END", "RESERVED"))
+pprint.pprint(tokensMMIC)
+x = MMICParser(tokensMMIC)
 
-bpx = NubisProgram()
-bpx.open("nubis.bla")
+actual = x.program()
+
+
+#bpx = NubisProgram()
+#bpx.open("nubis.bla")
 
 #print type(bpx.getCode())
 
-tokensNubis = NubisLexer( bpx.getCode())
-tokensNubis.append((u"END", "RESERVED"))
-pprint.pprint(tokensNubis)
-x = NubisParser(tokensNubis)
+#tokensNubis = NubisLexer( bpx.getCode())
+#tokensNubis.append((u"END", "RESERVED"))
+#pprint.pprint(tokensNubis)
+#x = NubisParser(tokensNubis)
 
-actual = x.program()
+#actual = x.program()
 
 print "******************"
 
@@ -115,7 +128,7 @@ def interpret(stmt, level):
 
             return
 
-interpret(actual,0)
+#interpret(actual,0)
 
 print "*********** EVALUATE ***********"
 
@@ -203,6 +216,6 @@ def evaluate(stmt, env):
 
 envGlobal = SymbolEnv()
 
-evaluate(actual, envGlobal)
+#evaluate(actual, envGlobal)
 
 print envGlobal

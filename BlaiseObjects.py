@@ -57,6 +57,18 @@ class Block(object):
         return u"%s: %s Attributes: [%s] " % ( self.type, self.name, self.attributes)
 
 
+class Call(object):
+
+    def __init__(self ,id,  params = None):
+        self.type = "CALL"
+        self.name = id
+        self.params = params
+        self.value = self
+
+    def __repr__(self):
+        return u"%s: %s params: [%s] " % ( self.type, self.name, self.params)
+
+
 
 class ForStatement(object):
 
@@ -188,4 +200,13 @@ class NumberOpNode(Node):
         self.type = typeOf
         self.value = value
     def __repr__(self):
-        return ('N:{0}').format(self.value)
+        return ('N:{0} Type:{1}').format(self.value, self.type)
+
+
+class Literal(Node):
+
+    def __init__(self, value):
+        self.type = "LITERAL"
+        self.value = value
+    def __repr__(self):
+        return ('STRING:{0}').format(self.value)

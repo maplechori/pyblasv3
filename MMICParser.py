@@ -74,10 +74,37 @@ class ArrayAccess(BinOp):
     pass
 
 
+class BeginCombine(Node):
+
+    def __init__(self, name, params):
+        self.name = name
+        self.type = "BEGINCOMBINE"
+        self.value = params
+
+    def __repr__(self):
+        return ('BeginCombine {0} Params: {1}').format(self.name, self.value)
 
 
 
-class NubisParser(Parser):
+class JumpBack(Node):
+
+    def __init__(self, tag):
+        self.name = tag
+        self.type = "JUMPBACK"
+        self.value = tag
+
+    def __repr__(self):
+        return ('Jumpback {0} Params: {1}').format(self.name, self.value)
+
+
+
+
+
+
+
+
+
+class MMICParser(Parser):
     _dm = None
 
     def __init__(self, tokenStream):
@@ -94,7 +121,11 @@ class NubisParser(Parser):
 
     def factor(self):
         value = 0
-        if self.accept("ID"):
+
+        if self.accept("NOT") or self.accept("!"):
+            value = NotExpression(self.factor())
+
+        elif self.accept("ID"):
             value = Identifier(self.getPrev())
 
             if(self.accept("[")):
@@ -105,26 +136,50 @@ class NubisParser(Parser):
                 return arr
 
             if self.accept("("):
-                print "FUNCTION"
-                value = ExpressionNode(self.expression())
-                self.expect(")")
+                print "FUNCTION CALL"
+                if self.accept(")"):
+                    value = Call(value, None)
+                else:
+                    value = Call(value, self.params_list())
+                    self.expect(")")
+                print value
+
                 return value
 
 
 
 
-
         elif self.accept("COUNT"):
+
             value = NumberOpNode(int(self.getPrev()), "INTEGER")
+        elif self.accept("EMPTY"):
+            value = Identifier("EMPTY")
 
         elif self.accept("("):
-            value = ExpressionNode(self.expression())
+            value = ExpressionNode(self.and_or_expression())
             self.expect(")")
+        elif self.accept("LITERAL"):
+            value = Literal(self.getPrev())
         else:
             print "factor: syntax error", self.getPrev(), self.getCurr()
             self.getSym()
 
         return value
+
+    def params_list(self):
+        paramsList = []
+        paramsList.append(self.expression())
+
+        while(self.accept("COMMA"))  :
+            paramsList.append(self.expression())
+
+
+        return paramsList
+
+
+
+
+
 
     def term(self):
         left = self.factor()
@@ -136,7 +191,7 @@ class NubisParser(Parser):
             rval = self.factor()
             left = BinOp(op, left, rval)
             #print left
-
+        print "returning-->", left
         return left
 
     def unary(self):
@@ -157,7 +212,7 @@ class NubisParser(Parser):
     def expression(self):
         left = self.unary()
 
-        while self.getCurr() == "+" or self.getCurr() == "-" or  self.getCurr() == "=" or self.getCurr() == '<>'  or self.getCurr() == "!=" or self.getCurr() ==  "<" or self.getCurr() == "<=" or self.getCurr() == ">" or self.getCurr() == ">=":
+        while self.getCurr() == "DECIMAL" or self.getCurr() == "." or self.getCurr() == "+" or self.getCurr() == "-" or  self.getCurr() == "=" or self.getCurr() == '<>'  or self.getCurr() == "!=" or self.getCurr() ==  "<" or self.getCurr() == "<=" or self.getCurr() == ">" or self.getCurr() == ">=":
             op = self.getCurr()
             self.getSym()
             left = BinOp(op, left, self.unary())
@@ -168,13 +223,24 @@ class NubisParser(Parser):
 
     def and_or_expression(self):
         left = self.expression()
+
         #self.getSym()
-        while self.getCurr() == "AND" or self.getCurr() == "OR" or self.getCurr() == "IN" :
+        while str.strip(self.getCurr()) == "AND" or str.strip(self.getCurr()) == "and" or str.strip(self.getCurr()) == "OR" or str.strip(self.getCurr()) == "IN" or str.strip(self.getCurr()) == "in":
+
+            if  self.getCurr() == "IN":
+                   print "IN >>>"
+
+
             op = self.getCurr()
+
             self.getSym()
 
-            if self.getCurr() == "AND" or self.getCurr() == "OR" or self.getCurr() == "IN":
+            if self.getCurr() == "AND" or self.getCurr() == "OR" or self.getCurr() == "IN" or str.strip(self.getCurr()) == "and" or str.strip(self.getCurr()) == "in":
+
+
                 right = self.and_or_expression()
+                #right = self.condition()
+
             else:
                 right = self.expression()
             left = BinOp(op, left, right)
@@ -185,14 +251,17 @@ class NubisParser(Parser):
 
     def condition(self):
         right = None
-        if self.accept("NOT"):
-            if self.accept("("):
-                left = NotExpression(self.and_or_expression())
-                self.accept(")")
-            else:
-                left = NotExpression(self.and_or_expression())
-        else:
-            left = ExpressionNode(self.and_or_expression())
+        #if self.accept("NOT") or self.accept("!"):
+        #    if self.accept("("):
+        #        left = NotExpression(self.condition())
+        #        self.accept(")")
+        #    else:
+        #        left = NotExpression(self.condition())
+
+
+
+        #else:
+        left = ExpressionNode(self.and_or_expression())
 
         if self.accept("THEN"):
 
@@ -225,13 +294,14 @@ class NubisParser(Parser):
             return IfCondition("IF", left, statements, right)
 
         else:
+
             print "condition: invalid operator", self.current_token[0], self.current_token[1], self.getPrev(), self.getCurr()
             self.getSym()
 
     def statement_list(self):
         stmtList = []
         stmtList.append(self.statement())
-        while(self.current_token[0] != "END"):
+        while(self.current_token[0] != "END" and self.current_token[0] != "ENDDO" and self.current_token[0] != "ENDCOMBINE")  :
             stmtList.append(self.statement())
         return stmtList
 
@@ -241,23 +311,38 @@ class NubisParser(Parser):
         print "statement(", self.current_token[0] , self.getCurr() , ")"
 
         if self.accept("ID"):
+
             identifier = Identifier(self.getPrev())
             print identifier
+
             if (self.accept(".FILL")):
+                print BinOp("CALL", identifier, MethodCall("FILL"))
                 return BinOp("CALL", identifier, MethodCall("FILL"))
             elif (self.accept(".KEEP")):
+                print BinOp("CALL", identifier, MethodCall("KEEP"))
                 return BinOp("CALL", identifier, MethodCall("KEEP"))
             elif(self.accept("[")):
                     sexp = self.expression()
+                    print "array access", sexp
                     arr = ArrayAccess("ArrayAccess", identifier, sexp)
                     self.expect("]")
+
+
+                    if (self.accept(".KEEP")):
+                        arr = BinOp("CALL", arr, MethodCall("KEEP"))
+
                     if self.accept(":="):
                         assign = AssignmentNode(":=", arr, self.expression())
                         return assign
                     else:
                         return arr
             elif self.accept(":="):
-                assign = AssignmentNode(":=", identifier, self.expression())
+
+                print identifier
+                exp = self.expression()
+                print exp
+
+                assign = AssignmentNode(":=", identifier,exp  )
                 print "ASSIGN: ", assign
                 return assign
             elif self.accept("("):
@@ -269,12 +354,56 @@ class NubisParser(Parser):
             else:
                 return identifier
 
-        elif self.accept("IF"):
+        elif self.accept("IF") or self.accept("if"):
             print "IF"
             condition =  self.condition()
             print condition
             self.expect("ENDIF")
             return condition
+
+
+        elif self.accept("JUMPBACK"):
+            print "JUMPBACK"
+            self.accept("(")
+            self.accept("ID")
+            value = Identifier(self.getPrev())
+            self.accept(")")
+
+            return JumpBack(value)
+
+
+
+        elif self.accept("BEGINCOMBINE"):
+            print "BEGINCOMBINE"
+            self.accept("(")
+            self.accept("ID")
+            value = Identifier(self.getPrev())
+            self.expect(")")
+            stmts =  self.statement_list()
+            self.accept("ENDCOMBINE")
+
+            bc = BeginCombine(value, stmts)
+            return bc
+
+
+        elif self.accept("COMBINE"):
+            print "COMBINE"
+            self.accept("(")
+            params = self.params_list()
+            value = params[len(params)-1]
+            self.expect(")")
+            print value
+            stmts = []
+            for i in range(0,len(params) - 2):
+                stmts.append(self.statement())
+
+            bc =  BeginCombine(value, stmts)
+            return bc
+
+
+
+
+
 
 
         elif self.accept("FOR"):#self.current_token[1] == "FOR":
@@ -294,21 +423,25 @@ class NubisParser(Parser):
             if self.accept("COUNT"):
                 _final = NumberOpNode(self.getPrev(), "INTEGER")
             elif self.accept("("):
-                self.expression()
+                _final = self.expression()
                 self.accept(")")
+            elif self.accept("ID"):
+                _final = Identifier(self.getPrev())
 
 
             self.accept("DO")
             print "DO"
-            stmt = self.statement()
+            stmt = self.statement_list()
             print "ENDDO"
             self.accept("ENDDO")
-
 
 
             forstmt =  ForStatement(_control, _initial, _direction, _final, stmt)
             print forstmt
             return forstmt
+
+        elif self.accept("EXITFOR"):
+            return Identifier("EXITFOR")
 
 
     def enumerated_type(self):

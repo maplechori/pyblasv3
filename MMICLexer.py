@@ -41,17 +41,19 @@ LBRACKET = "["
 RBRACKET = "]"
 ELSE = "ELSE"
 ELSEIF = "ELSEIF"
+OR = "OR"
 
 tokens_ex = [
     (r'//.*(?=[\n|\r])?', None),  # COMMENTS
     (r'[ \n\r\t]+', None),  # SPACES AND WHITE SPACE
     (r'(?:{.*?})', None),  # COMMENTS
     (r'\:=', 'ASSIGN'),
-    (r'\.INSPECT', RESERVED),
     (r'MOVEBACKWARD', RESERVED),
     (r'MOVEFORWARD', RESERVED),
-    (r'\.INLINE', RESERVED),
     (r'\.FILL', RESERVED),
+    (r'\.KEEP', RESERVED),
+    (r'\.FUNCTION', RESERVED),
+    (r'\.SHOW', RESERVED),
     (r'\.RESPONSE', RESERVED),
     (r';', RESERVED),
     (r'\+', RESERVED),
@@ -64,7 +66,7 @@ tokens_ex = [
     (r'<', RESERVED),
     (r'>=', RESERVED),
     (r':', COLON),
-    (r'\.KEEP', 'KEEP'),
+
     (r'\,', 'COMMA'),
     (r'>', RESERVED),
     (r'=', RESERVED),
@@ -77,25 +79,39 @@ tokens_ex = [
     ( r'\]', RBRACKET),
     ( r'\(', RESERVED),
     ( r'\)', RESERVED),
-    ( r'\.', r'DECIMAL'),
+    ( r'\.', 'DECIMAL'),
     (r'THEN', RESERVED),
     (r'FOR', RESERVED),
-    (r'OR\s', RESERVED),
+    (r'OR\s', OR),
+    (r'\!', RESERVED),
     (r'NOT\s', RESERVED),
     (r'IF\s', IF),
     (r'ELSEIF\s', ELSEIF),
     (r'ELSE[\s\n]?', ELSE),
     (r'DO(?=\s)', RESERVED),
-    (r'GROUP\.', RESERVED),
-    (r'ENDGROUP', RESERVED),
-    (r'SUBGROUP\.', RESERVED),
-    (r'ENDSUBGROUP', RESERVED),
+    (r'COMBINE', RESERVED),
+    (r'BEGINCOMBINE', RESERVED),
+    (r'ENDCOMBINE', RESERVED),
     (r'ENDDO', RESERVED),
+    (r'AGE', RESERVED),
+    (r'YEAR', RESERVED),
+    (r'MONTH', RESERVED),
+    (r'JUMPBACK', RESERVED),
+    (r'MAIL', RESERVED),
+    (r'SENDEMAIL', RESERVED),
+    (r'PERMUTATION', RESERVED),
+    (r'EMAIL', RESERVED),
+    (r'LENGTH', RESERVED),
+    (r'STRLEN', RESERVED),
+    (r'SYSDATE', RESERVED),
+    (r'NONRESPONSE', RESERVED),
+    (r'RESPONSE', RESERVED),
+    (r'PARA', RESERVED),
     (r'EMPTY', EMPTY),
     (r'TO(?=\s)', RESERVED),
     (r'OF(?=\s)', RESERVED),
-    (r'EXIT', RESERVED),
     (r'EXITFOR', RESERVED),
+    (r'EXIT', RESERVED),
     (r'IN(?=\s)', RESERVED),
     (r'\*\*', 'MULTMULT'),
     (r'[0-9]+\.[0-9]+', 'FLOAT'),
@@ -105,5 +121,5 @@ tokens_ex = [
 ]
 
 
-def NubisLexer(characters):
-    return lex(characters, tokens_ex, re.UNICODE | re.IGNORECASE )
+def MMICLexer(characters, debug):
+    return lex(characters, tokens_ex, re.UNICODE | re.IGNORECASE , debug)
